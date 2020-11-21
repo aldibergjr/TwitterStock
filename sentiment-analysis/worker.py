@@ -30,10 +30,10 @@ if __name__ == "__main__":
     def callback(ch, method, properties, body):
         try:
             bodystr = body.decode()
-            logger.warning(f'RECEIVED: {bodystr}')
+            logger.info(f'RECEIVED: {bodystr}')
 
             tweet = json.loads(bodystr)
-            logger.warning(predict(tweet['text']))
+            logger.info(predict(tweet['text']))
         except Exception as e:
             logger.exception(e)
 
