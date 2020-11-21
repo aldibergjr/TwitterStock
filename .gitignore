@@ -104,3 +104,6 @@ dist
 .tern-port
 
 credentials.js
+
+#Twint files
+twint/
