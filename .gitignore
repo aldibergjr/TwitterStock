@@ -107,3 +107,13 @@ credentials.js
 
 #Twint files
 twint/
+
+.ipynb_checkpoints
+
+__pycache__/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+data/
