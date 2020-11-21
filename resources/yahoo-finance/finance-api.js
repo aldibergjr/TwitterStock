@@ -8,7 +8,7 @@ const port = 3333;
 app.use(bodyParser.json());
 const defaultSDate = "2020-11-01"
 const defaultEDate = "2020-11-20"
-const STOCKS = ["GILD", "UNP", "UTX", "HPQ", "V", "CSCO", "SLB", "AMGN", "BA", "COP", "CMCSA", "BMY"]
+const STOCKS = ["GILD", "UNP", "UTX", "HPQ", "V", "CSCO", "SLB", "AMGN", "BA", "COP", "CMCSA", "BMY", "VZ", "T", "UNH"];
 
 //Funções auxiliares
 
@@ -27,39 +27,45 @@ amqp.connect('amqp://localhost', function(error0, connection) {
     })
     
     
-  
-    app.get('/', (req, res) => {
+    
+    app.get('/stock/:name', (req, res) => {
         res.type('application/json')
-        sendHistory('V', defaultSDate, defaultEDate);
+        let name = req.params.name
+        sendHistory(name, defaultSDate, defaultEDate);
         res.send({})
-        
     })
+
+    app.get('/stock/:name/:startDate/:endDate', (req, res) => {
+      res.type('application/json')
+      let name = req.params.name
+      let startDate = req.params.startDate
+      let endDate = req.params.endDate
+      sendHistory(name, startDate, endDate);
+      res.send({})
+  })
 
     if (error1) {
       throw error1;
     }
 
     var queue = 'stocks';
-    var msg = 'novo pedido enviado';
+    
 
     var sendHistory = (name, sDate, eDate) => {
         var response = {}
         yahoo.history(name, 'close', sDate, eDate, '1d', function (err, data) {
-           response = {name : name, data: data};
+           response = {name : name, data: data, sDate: sDate, eDate: eDate};
            console.log(response)
            channel.sendToQueue(queue, Buffer.from(JSON.stringify(response)));
         });
     };
 
+    STOCKS.forEach(e => {
+      sendHistory(e, defaultSDate, defaultEDate);
+    })
+    
     channel.assertQueue(queue, {
       durable: false
     });
-
-    channel.sendToQueue(queue, Buffer.from(msg));
-    console.log(" [x] Sent %s", msg);
-    // setTimeout(function() { 
-    //     connection.close(); 
-    //     process.exit(0) 
-    //     }, 500);
   });
 });
