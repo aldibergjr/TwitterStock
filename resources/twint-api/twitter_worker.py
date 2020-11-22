@@ -1,0 +1,56 @@
+import twint
+import json
+import time
+import pika
+
+
+connection = pika.BlockingConnection(pika.URLParameters('amqps://zwffucpz:NcJ2ApBRCJdXnJ7f0g96An0aqb2N-5Ms@toad.rmq.cloudamqp.com/zwffucpz'))
+channel = connection.channel()
+channel.queue_declare(queue='tweets', durable=True)
+
+
+def getTweets(query):
+    # Configure
+    c = twint.Config()
+    c.Search = query
+    c.Limit = 10
+    c.Pandas = True
+    c.Hide_output = True
+    
+    twint.run.Search(c)
+    Tweets_df =  twint.storage.panda.Tweets_df
+    result = Tweets_df.to_json(orient="records") 
+    parsed = json.loads(result)
+    pos = 0
+    count = 0
+    sleepTime = 2
+
+    while len(Tweets_df) > 0:
+        if len(parsed) == 0:
+            twint.run.Search(c)
+            Tweets_df =  twint.storage.panda.Tweets_df
+            result = Tweets_df.to_json(orient="records") 
+            parsed = json.loads(result)
+            pos = 0 
+        else:
+            message = parsed[pos:pos+10]
+
+            for m in message:
+                channel.basic_publish(
+                    exchange='',
+                    routing_key='tweets',
+                    body=json.dumps(m),
+                    properties=pika.BasicProperties(
+                        delivery_mode=2,  # make message persistent
+                    )
+                )
+            
+            parsed = parsed[pos+10:]  
+            print('message sent') 	
+        time.sleep(sleepTime)
+        sleepTime = sleepTime + 0.05
+        pos = pos + 10
+        count = count +1
+
+
+

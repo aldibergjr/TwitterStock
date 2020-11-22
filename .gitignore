@@ -105,3 +105,6 @@ dist
 
 #twint files
 twint/
+
+__pycache__
+output.json
