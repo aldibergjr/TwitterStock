@@ -2,7 +2,7 @@ build-dev:
 	@docker build -t sentiment .
 
 run-dev:
-	@docker run -it --net=host sentiment
+	@docker run -it --env HOST=$(HOST) --net=host sentiment 
 
 build-heroku:
 	@heroku container:push web --app twitter-sentiment-1015
