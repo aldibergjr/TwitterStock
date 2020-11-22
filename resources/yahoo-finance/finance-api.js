@@ -16,7 +16,7 @@ const STOCKS = ["GILD", "UNP", "UTX", "HPQ", "V", "CSCO", "SLB", "AMGN", "BA", "
 
 
 
-amqp.connect('amqp://localhost', function(error0, connection) {
+amqp.connect(process.env.HOST_RABBITMQ, function(error0, connection) {
   if (error0) {
     throw error0;
   }
@@ -28,19 +28,21 @@ amqp.connect('amqp://localhost', function(error0, connection) {
     
     
     
-    app.get('/stock/:name', (req, res) => {
+    app.get('/stock/:name/:id', (req, res) => {
         res.type('application/json')
         let name = req.params.name
-        sendHistory(name, defaultSDate, defaultEDate);
+        let id = req.params.id;
+        sendHistory(name, defaultSDate, defaultEDate , id);
         res.send({})
     })
 
-    app.get('/stock/:name/:startDate/:endDate', (req, res) => {
+    app.get('/stock/:name/:startDate/:endDate/:id', (req, res) => {
       res.type('application/json')
       let name = req.params.name
       let startDate = req.params.startDate
       let endDate = req.params.endDate
-      sendHistory(name, startDate, endDate);
+      let id = req.params.id;
+      sendHistory(name, startDate, endDate , id);
       res.send({})
   })
 
@@ -51,18 +53,18 @@ amqp.connect('amqp://localhost', function(error0, connection) {
     var queue = 'stocks';
     
 
-    var sendHistory = (name, sDate, eDate) => {
+    var sendHistory = (name, sDate, eDate, id) => {
         var response = {}
         yahoo.history(name, 'close', sDate, eDate, '1d', function (err, data) {
-           response = {name : name, data: data, sDate: sDate, eDate: eDate};
+           response = {name : name, data: data, sDate: sDate, eDate: eDate, id:id};
            console.log(response)
            channel.sendToQueue(queue, Buffer.from(JSON.stringify(response)));
         });
     };
 
-    STOCKS.forEach(e => {
-      sendHistory(e, defaultSDate, defaultEDate);
-    })
+    // STOCKS.forEach(e => {
+    //   sendHistory(e, defaultSDate, defaultEDate);
+    // })
     
     channel.assertQueue(queue, {
       durable: false
