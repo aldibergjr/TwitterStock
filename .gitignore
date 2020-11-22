@@ -106,5 +106,18 @@ dist
 #twint files
 twint/
 
-__pycache__
 output.json
+#Twint files
+twint/
+
+.ipynb_checkpoints
+
+__pycache__/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+data/
+
+addon-manifest.json
