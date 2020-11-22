@@ -4,7 +4,7 @@ import React from 'react'
 
 export default function Dashboard(){
     return(
-        <div style={{height:"90vh",display:"block" ,background:"white",padding:"0% 10% 0% 10%",overflowY:"auto"}}>
+        <div style={{display:"block" ,background:"white",padding:"0% 10% 0% 10%",overflowY:"auto"}}>
             <h1>Dashboard</h1>
             <div style={{display:"flex"}}>
                 <div style={{width:"70%", padding:"0% 5% 0% 0%"}}>
