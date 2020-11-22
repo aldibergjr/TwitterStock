@@ -5,7 +5,7 @@ import json
 
 # Configure
 c = twint.Config()
-c.Search = "$TSLA"
+c.Search = "$APPL $T $TSLA"
 c.Limit = 0
 c.Pandas = True
 c.Hide_output = True
