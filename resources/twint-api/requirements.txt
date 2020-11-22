@@ -1,4 +1,5 @@
 Flask==1.1.2
-pandas==1.0.4
+pandas==1.1.4
+Pebble==4.5.3
 pika==1.1.0
 twint @ git+https://github.com/twintproject/twint.git@a45a8ac719d5710e7da92f77d9801b351e505c1f
