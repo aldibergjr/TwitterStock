@@ -9,7 +9,7 @@ import CustomAnalysis from './components/customAnalysis'
 
 export default function Routes() {
     return (
-        <div>
+        <div style={{display:"flex", height:"100vh",width:"100vw"}}>
             <Navbar />
             <BrowserRouter>
                 <Switch>
