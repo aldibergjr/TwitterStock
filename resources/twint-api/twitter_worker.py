@@ -11,7 +11,8 @@ channel = connection.channel()
 channel.queue_declare(queue='tweets', durable=True)
 
 
-def getTweets(query):
+def getTweets(query, _id):
+    print(f'{_id}: {query}')
     # Configure
     c = twint.Config()
     c.Search = query
