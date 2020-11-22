@@ -12,7 +12,7 @@ ch.setFormatter(logging.Formatter(
 logger.addHandler(ch)
 
 
-_NUM_WORKERS = os.environ.get('NUM_WORKERS', 8)
+_NUM_WORKERS = int(os.environ.get('NUM_WORKERS', 8))
 
 if __name__ == "__main__":
     logger.info(f'Initializing pool of workers with: {_NUM_WORKERS} workers')

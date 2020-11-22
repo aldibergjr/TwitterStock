@@ -117,3 +117,5 @@ share/python-wheels/
 .installed.cfg
 *.egg
 data/
+
+addon-manifest.json

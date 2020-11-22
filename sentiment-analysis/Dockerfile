@@ -2,15 +2,16 @@ FROM python:3.8-buster
 
 WORKDIR /root
 
-ENV EXCHANGE="twitter-stock"
-ENV HOST="0.0.0.0"
-
 COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+ENV HOST="amqps://zwffucpz:NcJ2ApBRCJdXnJ7f0g96An0aqb2N-5Ms@toad.rmq.cloudamqp.com/zwffucpz"
+ENV NUM_WORKERS=3
+
 COPY model model
 COPY sentiment.py .
 COPY server.py .
 COPY worker.py .
 
-RUN pip install -r requirements.txt
 
 CMD ["python", "server.py"]
