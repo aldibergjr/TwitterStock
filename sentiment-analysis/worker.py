@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import logging
 import pika
@@ -14,6 +15,33 @@ logger.addHandler(ch)
 _HOST_ = os.environ.get('HOST', '0.0.0.0')
 
 
+def _deemojify(text):
+    regrex_pattern = re.compile(pattern="["
+                                u"\U0001F600-\U0001F64F"  # emoticons
+                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                                u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                                u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                                "]+", flags=re.UNICODE)
+    return regrex_pattern.sub(r'', text)
+
+
+def _send_to_queue(msg: dict):
+    queue_name = 'tweets_sentiment'
+    connection = pika.BlockingConnection(pika.URLParameters(_HOST_))
+    channel = connection.channel()
+
+    channel.queue_declare(queue=queue_name, durable=True)
+
+    channel.basic_publish(
+        exchange='',
+        routing_key=queue_name,
+        body=json.dumps(msg),
+        properties=pika.BasicProperties(
+            delivery_mode=2,  # make message persistent
+        ))
+    connection.close()
+
+
 def work():
     try:
         queue_name = 'tweets'
@@ -23,18 +51,15 @@ def work():
         channel.queue_declare(queue='tweets', durable=True)
 
         def callback(ch, method, properties, body):
-            bodystr = body.decode()
-            logger.info(f'RECEIVED: {bodystr}')
+            tweet = json.loads(body.decode())
+            pred = predict(_deemojify(tweet['tweet']))
+            tweet['sentiment'] = 1 if pred else 0
 
-            tweet = json.loads(bodystr)
+            logger.info(
+                f'{tweet["tweet"]} [{tweet["language"]}]: {tweet["sentiment"]}')
 
-            tweet['sentiment'] = predict(tweet['tweet'])
-
-            logger.info(f'{tweet["tweet"]}: {tweet["sentiment"]}')
-
-            # TODO: send to output queue
             ch.basic_ack(delivery_tag=method.delivery_tag)
-
+            _send_to_queue(tweet)
 
         channel.basic_qos(prefetch_count=1)
         channel.basic_consume(queue=queue_name,
