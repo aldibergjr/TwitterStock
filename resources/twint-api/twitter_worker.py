@@ -3,6 +3,10 @@ import json
 import time
 import pika
 import os 
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 __HOST__ = os.environ.get('HOST', '0.0.0.0')
 
@@ -12,49 +16,53 @@ channel.queue_declare(queue='tweets', durable=True)
 
 
 def getTweets(query, _id):
-    print(f'{_id}: {query}')
-    # Configure
-    c = twint.Config()
-    c.Search = query
-    c.Limit = 100
-    c.Pandas = True
-    c.Hide_output = True
-    
-    twint.run.Search(c)
-    Tweets_df =  twint.storage.panda.Tweets_df
-    result = Tweets_df.to_json(orient="records") 
-    parsed = json.loads(result)
-    pos = 0
-    count = 0
-    sleepTime = 2
+    try:
+        print(f'{_id}: {query}')
+        # Configure
+        c = twint.Config()
+        c.Search = query
+        c.Limit = 100
+        c.Pandas = True
+        c.Hide_output = True
+        
+        twint.run.Search(c)
+        Tweets_df =  twint.storage.panda.Tweets_df
+        result = Tweets_df.to_json(orient="records") 
+        parsed = json.loads(result)
+        pos = 0
+        count = 0
+        sleepTime = 2
 
-    while len(Tweets_df) > 0:
-        if len(parsed) == 0:
-            twint.run.Search(c)
-            Tweets_df =  twint.storage.panda.Tweets_df
-            result = Tweets_df.to_json(orient="records") 
-            parsed = json.loads(result)
-            pos = 0 
-        else:
-            message = parsed[pos:pos+10]
+        while len(Tweets_df) > 0:
+            if len(parsed) == 0:
+                twint.run.Search(c)
+                Tweets_df =  twint.storage.panda.Tweets_df
+                result = Tweets_df.to_json(orient="records") 
+                parsed = json.loads(result)
+                pos = 0 
+            else:
+                message = parsed[pos:pos+10]
 
-            for m in message:
-                if m['language'] == 'en':
-                    channel.basic_publish(
-                        exchange='',
-                        routing_key='tweets',
-                        body=json.dumps(m),
-                        properties=pika.BasicProperties(
-                            delivery_mode=2, 
+                for m in message:
+                    if m['language'] == 'en':
+                        m['id_hackadeira'] = str(_id)
+                        channel.basic_publish(
+                            exchange='',
+                            routing_key='tweets',
+                            body=json.dumps(m),
+                            properties=pika.BasicProperties(
+                                delivery_mode=2, 
+                            )
                         )
-                    )
-            
-            parsed = parsed[pos+10:]  
-            print('message sent from: ' + query) 	
-        time.sleep(sleepTime)
-        sleepTime = sleepTime + 0.05
-        pos = pos + 10
-        count = count +1
-
+                
+                parsed = parsed[pos+10:]  
+                print('message sent from: ' + query) 	
+            time.sleep(sleepTime)
+            sleepTime = sleepTime + 0.05
+            pos = pos + 10
+            count = count +1
+    except Exception as e:
+        logger.exception(e)
+        raise e
 
 
