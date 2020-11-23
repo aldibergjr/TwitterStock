@@ -29,5 +29,10 @@ def cancel_query(query, _id):
             print(processes)
     return {'sucess': 'removed'}
 
+@app.route('/byDays/<startDate>/<endDate>/<query>/<uuid:_id>')
+def byDays(startDate, endDate, query, _id):
+    executor = ProcessPool()
+    executor.schedule(twitter_worker.getByDay, args=[startDate, endDate, query, _id])
+    return {'sucess': 'days'}
 
 app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))

@@ -4,6 +4,7 @@ import time
 import pika
 import os 
 import logging
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -41,21 +42,21 @@ def getTweets(query, _id):
                 parsed = json.loads(result)
                 pos = 0 
             else:
-                message = parsed[pos:pos+10]
+                message = parsed[pos:pos+20]
 
                 for m in message:
                     if m['language'] == 'en':
-                        m['id_hackadeira'] = str(_id)
+                        res = {'id_hackadeira' : str(_id), 'tweets' : [m]}
                         channel.basic_publish(
                             exchange='',
                             routing_key='tweets',
-                            body=json.dumps(m),
+                            body=json.dumps(res),
                             properties=pika.BasicProperties(
                                 delivery_mode=2, 
                             )
                         )
                 
-                parsed = parsed[pos+10:]  
+                parsed = parsed[pos+20:]  
                 print('message sent from: ' + query) 	
             time.sleep(sleepTime)
             sleepTime = sleepTime + 1
@@ -65,4 +66,55 @@ def getTweets(query, _id):
         logger.exception(e)
         raise e
 
+def toDateTime(string):
+    return datetime.strptime(string,'%Y-%m-%d')
+
+def DateToString(date):
+    return date.strftime('%Y-%m-%d')
+
+
+
+def getByDay(startDate, endDate, query, _id):
+    try:
+        startDate = toDateTime(startDate)
+        endDate = toDateTime(endDate)
+
+        while startDate <= endDate:
+            # Configure
+            s = DateToString(startDate)
+            e = DateToString(startDate + timedelta(days=2))
+            
+            
+            c = twint.Config()
+            c.Search = query
+            c.Limit = 20
+            c.Pandas = True
+            c.Hide_output = True
+            c.Since = s 
+            c.Until = e
+            c.Popular_tweets = True
+            c.Filter_retweets = True
+
+            twint.run.Search(c)
+            Tweets_df =  twint.storage.panda.Tweets_df
+            result = Tweets_df.to_json(orient="records") 
+            parsed = json.loads(result)
+            parsed = parsed[:20]
+            parsed = {'id_hackadeira' : str(_id), 'tweets': parsed}    
+
+            channel.basic_publish(
+                            exchange='',
+                            routing_key='tweets',
+                            body=json.dumps(parsed),
+                            properties=pika.BasicProperties(
+                                delivery_mode=2, 
+                            )
+                        )
+            
+            print('sent day ' + DateToString(startDate))
+            startDate = startDate + timedelta(days=1)
+
+    except Exception as e:
+        logger.exception(e)
+        raise e
 
