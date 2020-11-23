@@ -58,7 +58,7 @@ def getTweets(query, _id):
                 parsed = parsed[pos+10:]  
                 print('message sent from: ' + query) 	
             time.sleep(sleepTime)
-            sleepTime = sleepTime + 0.05
+            sleepTime = sleepTime + 1
             pos = pos + 10
             count = count +1
     except Exception as e:
