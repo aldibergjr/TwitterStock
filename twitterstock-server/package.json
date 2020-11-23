@@ -1,0 +1,17 @@
+{
+  "name": "twitterstock-server",
+  "version": "1.0.0",
+  "description": "TwitterStock application server",
+  "main": "application-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.6.0",
+    "rest": "^2.0.0",
+    "uuid": "^8.3.1",
+    "ws": "^7.4.0"
+  }
+}
