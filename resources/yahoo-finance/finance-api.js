@@ -36,7 +36,12 @@ amqp.connect(CONFIG.RABBITMQ_STOCKS, function(error0, connection) {
         sendHistory(name, defaultSDate, defaultEDate , id);
         res.send({})
     })
-
+    app.get('/aditionalData/:name/:id', (req,res)=>{
+        let name = req.params.name;
+        let id = req.params.id;
+        aditionalData(name, id, {})
+        res.send({"success" : true})
+    })
     app.get('/stock/:name/:startDate/:endDate/:id', (req, res) => {
       res.type('application/json')
       let name = req.params.name
@@ -62,6 +67,34 @@ amqp.connect(CONFIG.RABBITMQ_STOCKS, function(error0, connection) {
            channel.sendToQueue(queue, Buffer.from(JSON.stringify(response)));
         });
     };
+    var aditionalData = (name,id, currData) => {
+      if(!currData.price){
+        yahoo.price(name, (err, data) => {
+          currData = {price: data, ...currData}
+          aditionalData(name, id, currData);
+        })
+      }else if(!currData.analysis){
+        yahoo.analystRecomendation(name, (err, data) => {
+          currData = {analysis: data, ...currData}
+          aditionalData(name, id, currData);
+        })
+      }else if(!currData.earnings){
+        yahoo.earningsGrowth(name, (err, data) => {
+          currData = {earnings: data, ...currData}
+          aditionalData(name, id, currData);
+        })
+      }else if(!currData.revenue){
+        yahoo.revenuePerShare(name, (err, data) => {
+          currData = {revenue: data, ...currData}
+          aditionalData(name, id, currData);
+        })
+      }else{
+        //send to channel
+        response = {name : name, addData: currData, id:id};
+        console.log(response)
+        channel.sendToQueue(queue, Buffer.from(JSON.stringify(response)));
+      }
+    }
 
     // STOCKS.forEach(e => {
     //   sendHistory(e, defaultSDate, defaultEDate);
