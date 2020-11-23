@@ -7,7 +7,7 @@ const history = createBrowserHistory();
 export default function Navbar() {
     const [tab, setTab] = useState("dash");
     return (
-        <div style={{height: "100%", width: "8%", boxSizing: "border-box", padding: "4% 1% 2% 1%", display: "flex", flexDirection: "column", background: "white", color: "black", fontWeight: "600",borderRadius:"25px 0px 0px 25px",textAlign:"center"}}>
+        <div style={{height: "100%", width: "7%", boxSizing: "border-box", padding: "4% 1% 2% 1%", display: "flex", flexDirection: "column", background: "white", color: "black", fontWeight: "600",borderRadius:"25px 0px 0px 25px",textAlign:"center"}}>
             <div style={{ height: "30%" }}>
                 <img style={{ padding: "0% 4% 0% 2%", cursor: "pointer", wordBreak: "break-word" }} onClick={() => { history.push('/'); history.go('/') }} src={Logo}></img>
             </div>

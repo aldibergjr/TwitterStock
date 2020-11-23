@@ -9,9 +9,9 @@ import CustomAnalysis from './components/customAnalysis'
 
 export default function Routes() {
     return (
-        <div style={{display:"flex", height:"100vh",width:"100vw",boxSizing:"border-box",padding:"2% 5% 2% 5%",background:"#c4c9dc"}}>
+        <div style={{display:"flex", height:"100vh",width:"100vw",boxSizing:"border-box",padding:"1% 5% 1% 5%",background:"#c4c9dc"}}>
             <Navbar />
-            <div style={{background:"white", height:"100%",width:"100%",boxSizing:"border-box"}}>
+            <div style={{background:"white", height:"100%",width:"100%",boxSizing:"border-box",borderRadius:"0px 30px 30px 0px"}}>
                 <BrowserRouter>
                     <Switch>
                         <Route path="/customAnalysis"><CustomAnalysis /></Route>

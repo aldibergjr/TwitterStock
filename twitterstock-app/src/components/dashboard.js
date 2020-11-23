@@ -10,8 +10,40 @@ export default function Dashboard() {
     const [query, setQuery] = useState('berg')
     const [searched, setSearched] = useState(false)
     const [tweets, setTweets] = useState([])
+    const [tweetsSentimentData, setTweetsSentimentData] = useState([1,15,10])
+    const [data,setData] = useState({
+        labels: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
+        datasets: [
+            {
+                label: 'First',
+                tension: 0,
+                borderWidth: 2,
+                data: ['5', '7', '12', '33', '10', '18', '20', '14', '5', '6', '7', '2', '15', '16', '16', '17', '16', '14', '13', '14', '11', '12', '15', '18', '16', '15']
+            },
+            {
+                label: 'Second',
+                tension: 0,
+                borderWidth: 2,
+                data: tweetsSentimentData
+            }
+        ]
+    })
+    
     var toCancel = ''
 
+
+
+    function plotTwitterData(tweets) {
+        var dayIndex = 0;
+        tweets.forEach(tweet=>{
+            console.log(tweet.sentiment)
+            dayIndex+=tweet.sentiment;
+        })
+        console.log("Resultado:")
+        console.log(dayIndex)
+        
+    }
+    
     ws.onopen = function () {
         console.log('connected')
         searchTweet();
@@ -21,8 +53,8 @@ export default function Dashboard() {
         // listen to data sent from the websocket server
         const message = JSON.parse(evt.data)
         //this.setState({dataFromServer: message})
-        console.log(message.tweets[0].tweets)
         setTweets(message.tweets[0].tweets)
+        plotTwitterData(message.tweets[0].tweets)
     }
 
     ws.onclose = () => {
@@ -45,24 +77,6 @@ export default function Dashboard() {
         ws.send(JSON.stringify({ 'type': 'tweet', 'resource': `/cancel/${toCancel}` }))
     }
 
-
-    const [data] = useState({
-        labels: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
-        datasets: [
-            {
-                label: 'First',
-                tension: 0,
-                borderWidth: 2,
-                data: ['5', '7', '12', '33', '10', '18', '20', '14', '5', '6', '7', '2', '15', '16', '16', '17', '16', '14', '13', '14', '11', '12', '15', '18', '16', '15']
-            },
-            {
-                label: 'Second',
-                tension: 0,
-                borderWidth: 2,
-                data: ['10', '9', '23', '15', '0', '3', '1', '11', '12', '15', '18', '20', '14', '5', '6', '7', '22', '15', '16', '16', '17', '20', '14', '8', '1', '5']
-            }
-        ]
-    })
     const options = {
         scales: {
             'scaleShowLabels': false,
@@ -118,15 +132,15 @@ export default function Dashboard() {
     }
 
     return (
-        <div style={{ display: "flex", width: "100%", height: "100%", background: "#f0f3f8", overflowY: "auto", borderRadius: "30px 0px 0px 30px" }}>
-            <div style={{ width: "65%", padding: "3% 3% 3% 3%", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", width: "100%", height: "100%", background: "#f0f3f8", overflowY: "auto", borderRadius: "30px 30px 30px 30px" }}>
+            <div style={{ width: "70%", padding: "3% 5% 3% 5%", boxSizing: "border-box" }}>
                 {/* <h1 style={{ margin: "0% 0% 3% 0%" }}>Dashboard</h1> */}
                 <div style={{ display: "flex", height: "50%", padding: "4% 3% 4% 3%", background: "white", boxSizing: "border-box", borderRadius: "30px" }}>
                     <div style={{ width: "65%", boxSizing: "border-box", paddingRight: "3%" }}>
                         <h2 style={{ marginTop: "0%", marginBottom: "5%" }}>Twitter analysis recomendation</h2>
                         <Line responsive={true} data={getChartData} options={options} height={null} width={null} />
                     </div>
-                    <div style={{ width: "35%", borderRadius: "15px", background: "#f0f3f8", boxSizing: "border-box", padding: "3%", overflowY: "auto" }}>
+                    <div style={{ width: "35%",height:"100%" ,borderRadius: "15px", background: "#f0f3f8", boxSizing: "border-box", padding: "3%", overflowY: "hidden" }}>
                         <p style={{ margin: "0%", color: "rgb(190,190,190)", fontSize: "13px", fontWeight: "700" }}>stock info</p>
                         <p>Nome</p>
                         <Pie data={{ labels: ['good', 'bad'], datasets: [{ data: [2000, 4000], backgroundColor: ["blue", "orange"] }] }} options={{ legend: { display: false }, elements: { arc: { borderWidth: 0 } } }} ></Pie>
@@ -157,12 +171,10 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
-            <div style={{ width: "35%", background: "white", boxSizing: "border-box", padding: "2%", overflowY: "auto", borderRadius: "25px " }}>
+            <div style={{ width: "30%", background: "white", boxSizing: "border-box", padding: "2%", overflowY: "auto", borderRadius: "25px " }}>
                 <h2>análises de sentimento</h2>
                 <p>notificações</p>
-                <div style={{ width: "100%", height: "200px", background: "gray", borderRadius: "10px", margin: "5% 0% 5% 0%" }}></div>
-                <div style={{ width: "100%", height: "200px", background: "gray", borderRadius: "10px", margin: "5% 0% 5% 0%" }}></div>
-                <div style={{ width: "100%", height: "200px", background: "gray", borderRadius: "10px", margin: "5% 0% 5% 0%" }}></div>
+                <div style={{ width: "100%", height: "200px", background: "#f0f3f8", borderRadius: "35px", margin: "5% 0% 5% 0%" }}></div>
             </div>
         </div>
     )
