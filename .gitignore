@@ -121,3 +121,5 @@ share/python-wheels/
 data/
 
 addon-manifest.json
+
+config.*

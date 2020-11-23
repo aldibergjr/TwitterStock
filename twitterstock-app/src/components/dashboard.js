@@ -7,54 +7,100 @@ import Search from '../assets/search.svg'
 var ws = new WebSocket('ws://localhost:8080/application-server')
 
 export default function Dashboard() {
-    const [query, setQuery] = useState('berg')
+    const [tweetQuery, setTweetQuery] = useState('$AAPL')
+    const [stockQuery, setStockQuery] = useState('AAPL')
     const [searched, setSearched] = useState(false)
     const [tweets, setTweets] = useState([])
-    const [tweetsSentimentData, setTweetsSentimentData] = useState([1,15,10])
-    const [data,setData] = useState({
-        labels: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
+    const [data, setData] = useState({
+        labels: [],
         datasets: [
             {
-                label: 'First',
+                label: 'Stock',
                 tension: 0,
                 borderWidth: 2,
-                data: ['5', '7', '12', '33', '10', '18', '20', '14', '5', '6', '7', '2', '15', '16', '16', '17', '16', '14', '13', '14', '11', '12', '15', '18', '16', '15']
+                data: []
             },
             {
-                label: 'Second',
+                label: 'TweetAnalysis',
                 tension: 0,
                 borderWidth: 2,
-                data: tweetsSentimentData
+                data: []
             }
         ]
     })
-    
+    const[stockInfo,setStockInfo] = useState()
+
     var toCancel = ''
-
-
 
     function plotTwitterData(tweets) {
         var dayIndex = 0;
-        tweets.forEach(tweet=>{
-            console.log(tweet.sentiment)
-            dayIndex+=tweet.sentiment;
+        tweets.forEach(tweet => {
+            dayIndex += tweet.sentiment;
         })
-        console.log("Resultado:")
-        console.log(dayIndex)
-        
+        const date =new Date(tweets[0].date)
+        setData({
+            labels: [...data.labels,date],
+            datasets: [
+                {
+                    label: 'Stock',
+                    yAxisID: 'Stock',
+                    tension: 0,
+                    borderWidth: 2,
+                    data: data.datasets[0].data
+                },
+                {
+                    label: 'TweetAnalysis',
+                    yAxisID: 'TweetAnalysis',
+                    tension: 0,
+                    borderWidth: 2,
+                    data: [...data.datasets[1].data, dayIndex]
+                }
+            ]
+        })
     }
-    
+
+    function plotYahooData(stocks) {
+        setStockInfo({value:stocks[stocks.length-1],delta:stocks[stocks.length-1] - stocks[stocks.length-2],
+            isIncreasing:stocks[stocks.length-1] > stocks[stocks.length-2]})
+        setData({
+            labels: data.labels,
+            datasets: [
+                {
+                    label: 'Stock',
+                    tension: 0,
+                    borderWidth: 2,
+                    data: stocks
+                },
+                {
+                    label: 'TweetAnalysis',
+                    tension: 0,
+                    borderWidth: 2,
+                    data: data.datasets[1].data
+                }
+            ]
+        })
+    }
+
     ws.onopen = function () {
         console.log('connected')
         searchTweet();
+        setTimeout(() => {
+            searchStock();
+        }, 1000)
     }
 
     ws.onmessage = function (evt) {
         // listen to data sent from the websocket server
         const message = JSON.parse(evt.data)
         //this.setState({dataFromServer: message})
-        setTweets(message.tweets[0].tweets)
-        plotTwitterData(message.tweets[0].tweets)
+        if (message.tweets) {
+            console.log(message)
+            setTweets(message.tweets[0].tweets)
+            plotTwitterData(message.tweets[0].tweets)
+        } else if (message.stocks) {
+            console.log(message)
+            plotYahooData(message.stocks[0].data)
+        }
     }
 
     ws.onclose = () => {
@@ -63,14 +109,19 @@ export default function Dashboard() {
     }
 
     function searchTweet() {
-        ws.send(JSON.stringify({ 'type': 'tweet', 'resource': `/byDays/2020-11-01/2020-11-04/${query}` }))
-        toCancel = query
+        ws.send(JSON.stringify({ 'type': 'tweet', 'resource': `/byDays/2020-11-16/2020-11-22/${tweetQuery}` }))
+        toCancel = tweetQuery
         setSearched(true)
     }
 
+    function searchStock() {
+        ws.send(JSON.stringify({ 'type': 'stock', 'resource': `/stock/${stockQuery}/2020-11-15/2020-11-21` }))
+    }
+
+
     function changeQuery(event) {
         event.persist()
-        setQuery(event.target.value)
+        setTweetQuery(event.target.value)
     }
 
     function cancelQuery() {
@@ -84,7 +135,17 @@ export default function Dashboard() {
                 display: false
             }],
             yAxes: [{
-                display: true,
+                id: 'Stock',
+                position: 'left',
+                gridLines: {
+                    color: "rgba(240, 240, 240, 0.5)",
+                },
+                ticks: {
+                    fontColor: "rgba(200, 200, 200, 1)",
+                }
+            }, {
+                id: 'TweetAnalysis',
+                position: 'right',
                 gridLines: {
                     color: "rgba(240, 240, 240, 0.5)",
                 },
@@ -140,9 +201,9 @@ export default function Dashboard() {
                         <h2 style={{ marginTop: "0%", marginBottom: "5%" }}>Twitter analysis recomendation</h2>
                         <Line responsive={true} data={getChartData} options={options} height={null} width={null} />
                     </div>
-                    <div style={{ width: "35%",height:"100%" ,borderRadius: "15px", background: "#f0f3f8", boxSizing: "border-box", padding: "3%", overflowY: "hidden" }}>
+                    <div style={{ width: "35%", height: "100%", borderRadius: "15px", background: "#f0f3f8", boxSizing: "border-box", padding: "3%", overflowY: "hidden" }}>
                         <p style={{ margin: "0%", color: "rgb(190,190,190)", fontSize: "13px", fontWeight: "700" }}>stock info</p>
-                        <p>Nome</p>
+                        <p style={{fontSize:"20px",fontWeight:"700",marginTop:"5%"}}>{tweetQuery}</p>
                         <Pie data={{ labels: ['good', 'bad'], datasets: [{ data: [2000, 4000], backgroundColor: ["blue", "orange"] }] }} options={{ legend: { display: false }, elements: { arc: { borderWidth: 0 } } }} ></Pie>
                         <p>^Valor</p>
                     </div>
@@ -159,11 +220,11 @@ export default function Dashboard() {
                         <h2>Tweets feed</h2>
                         {tweets.map((tweet, key) => {
                             return (
-                                <div key={key} style={{display:"flex", padding:"5% 0% 5% 0%" ,borderBottom: "0.3px solid rgb(180,180,180,0.3)" }}>
-                                    <img style={{width:"50px",height:"50px",borderRadius:"15px"}} src="https://abs.twimg.com/sticky/default_profile_images/default_profile_200x200.png"></img>
-                                    <div style={{display:"block", padding:"0% 5% 0% 5%", boxSizing:"border-box"}}>
-                                        <h3 style={{ margin: "0%", fontSize:"15px",fontWeight:"500",color:"lightblue"}}>{"@"+tweet.username}</h3>
-                                        <h3 style={{ margin: "0%", fontSize:"15px",fontWeight:"400",}}>{tweet.tweet}</h3>
+                                <div key={key} style={{ display: "flex", padding: "5% 0% 5% 0%", borderBottom: "0.3px solid rgb(180,180,180,0.3)" }}>
+                                    <img style={{ width: "50px", height: "50px", borderRadius: "15px" }} src="https://abs.twimg.com/sticky/default_profile_images/default_profile_200x200.png"></img>
+                                    <div style={{ display: "block", padding: "0% 5% 0% 5%", boxSizing: "border-box" }}>
+                                        <h3 style={{ margin: "0%", fontSize: "15px", fontWeight: "500", color: "lightblue" }}>{"@" + tweet.username}</h3>
+                                        <h3 style={{ margin: "0%", fontSize: "15px", fontWeight: "400", }}>{tweet.tweet}</h3>
                                     </div>
                                 </div>
                             )
