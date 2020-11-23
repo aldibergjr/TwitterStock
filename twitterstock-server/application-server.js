@@ -48,7 +48,7 @@ amqp.connect(process.env.HOST_RABBITMQ, function(error0, connection) {
     channel.consume("tweets_sentiment", function(msg) {
             console.log(" [x] Received tweets %s", msg.content.toString());
             var response = JSON.parse(msg.content.toString())
-            var clientObj = client_list[response.id];
+            var clientObj = client_list[response.id_hackadeira];
             if(!clientObj)
                 return;
             
