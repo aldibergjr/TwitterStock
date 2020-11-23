@@ -81,6 +81,11 @@ export default function Dashboard() {
         })
     }
 
+    function updateRanking(payload) {
+        // TODO: tratar a stream de rank
+        console.log(payload)
+    }
+
     ws.onopen = function () {
         console.log('connected')
         searchTweet();
@@ -100,6 +105,9 @@ export default function Dashboard() {
         } else if (message.stocks) {
             console.log(message)
             plotYahooData(message.stocks[0].data)
+        } else if (message.ranking) {
+            console.log(message)
+            updateRanking(message)
         }
     }
 
