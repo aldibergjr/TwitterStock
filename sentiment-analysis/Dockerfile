@@ -11,6 +11,6 @@ COPY sentiment.py .
 COPY server.py .
 COPY worker.py .
 
-ENV NUM_WORKERS=3
+ENV NUM_WORKERS=8
 
 CMD ["python", "server.py"]

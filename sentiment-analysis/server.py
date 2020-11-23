@@ -17,4 +17,4 @@ _NUM_WORKERS = int(os.environ.get('NUM_WORKERS', 8))
 if __name__ == "__main__":
     logger.info(f'Initializing pool of workers with: {_NUM_WORKERS} workers')
     with ProcessPoolExecutor(_NUM_WORKERS) as executor:
-        futures = [executor.submit(worker.work) for i in range(_NUM_WORKERS)]
+        futures = [executor.submit(worker.work, i) for i in range(_NUM_WORKERS)]

@@ -5,12 +5,16 @@ import logging
 import pika
 from sentiment import predict
 
-logger = logging.getLogger('sentiment_worker')
-logger.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(logging.Formatter('%(asctime)s :: %(name)s :: [%(levelname)s] %(message)s'))  # noqa
-logger.addHandler(ch)
+
+def setup_logger(name: str):
+    logger = logging.getLogger(f'SA_worker_{name}')
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    ch.setFormatter(logging.Formatter('%(asctime)s :: %(name)s :: [%(levelname)s] %(message)s'))  # noqa
+    logger.addHandler(ch)
+    return logger
+
 
 _HOST_ = os.environ.get('HOST', '0.0.0.0')
 
@@ -42,7 +46,8 @@ def _send_to_queue(msg: dict):
     connection.close()
 
 
-def work():
+def work(name: str):
+    logger = setup_logger(name)
     try:
         queue_name = 'tweets'
         connection = pika.BlockingConnection(pika.URLParameters(_HOST_))
@@ -51,15 +56,16 @@ def work():
         channel.queue_declare(queue='tweets', durable=True)
 
         def callback(ch, method, properties, body):
-            tweet = json.loads(body.decode())
-            pred = predict(_deemojify(tweet['tweet']))
-            tweet['sentiment'] = 1 if pred else 0
+            tweets = json.loads(body.decode())
+            for t in tweets['tweets']:
+                pred = predict(_deemojify(t['tweet']))
+                t['sentiment'] = 1 if pred else 0
 
             logger.info(
-                f'{tweet["tweet"]} [{tweet["language"]}]: {tweet["sentiment"]}')
+                f'{tweets["id_hackadeira"]} :: {100*sum([t["sentiment"] for t in tweets["tweets"]])/len(tweets["tweets"]):.2f}%') # noqa
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            _send_to_queue(tweet)
+            _send_to_queue(tweets)
 
         channel.basic_qos(prefetch_count=1)
         channel.basic_consume(queue=queue_name,
