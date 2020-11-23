@@ -9,16 +9,18 @@ import CustomAnalysis from './components/customAnalysis'
 
 export default function Routes() {
     return (
-        <div style={{display:"flex", height:"100vh",width:"100vw"}}>
+        <div style={{display:"flex", height:"100vh",width:"100vw",boxSizing:"border-box",padding:"2% 5% 2% 5%",background:"#c4c9dc"}}>
             <Navbar />
-            <BrowserRouter>
-                <Switch>
-                    <Route path="/customAnalysis"><CustomAnalysis /></Route>
-                    <Route path="/byStockAnalysis"><AnalysisByStock /></Route>
-                    <Route path="/dashboard"><Dashboard /></Route>
-                    <Route path="/"><Dashboard /></Route>
-                </Switch>
-            </BrowserRouter>
+            <div style={{background:"white", height:"100%",width:"100%",boxSizing:"border-box"}}>
+                <BrowserRouter>
+                    <Switch>
+                        <Route path="/customAnalysis"><CustomAnalysis /></Route>
+                        <Route path="/byStockAnalysis"><AnalysisByStock /></Route>
+                        <Route path="/dashboard"><Dashboard /></Route>
+                        <Route path="/"><Dashboard /></Route>
+                    </Switch>
+                </BrowserRouter>
+            </div>
         </div>
     );
 }
