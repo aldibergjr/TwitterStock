@@ -1,9 +1,8 @@
-
-
+var CONFIG = require('./config')
 //TODO -> alterar URL "http://localhost:3333"
 
-const stocks_url = process.env.HOST_FINANCEAPI;
-const tweets_url = process.env.HOST_TWINTAPI;
+const stocks_url = 'http://c0c8377e6638.ngrok.io';
+const tweets_url = 'http://60cdb8f88d95.ngrok.io';
 var rest = require('rest');
 var amqp = require('amqplib/callback_api');
 const uuidv4 = require("uuid")
@@ -18,7 +17,34 @@ var client_list = {};
 
 //amqp://localhost
 //TODO -> ALTERAR LINK PARA O REAL
-amqp.connect(process.env.HOST_RABBITMQ, function(error0, connection) {
+amqp.connect(CONFIG.RABBITMQ_TWEETS, function(error0, connection) {
+  if (error0) {
+    throw error0;
+  }
+  connection.createChannel(function(error1, channel) {
+    if (error1) {
+        throw error1;
+    }
+
+    channel.consume("tweets_sentiment", function(msg) {
+            console.log(" [x] Received tweets %s", msg.content.toString());
+            var response = JSON.parse(msg.content.toString())
+            var clientObj = client_list[response.id_hackadeira];
+            if(!clientObj)
+                return;
+            
+            if(!clientObj.tweets_changed)
+                clientObj.tSendData = []
+            clientObj.tSendData.push(response); 
+            clientObj.tweets_changed = true;
+        }, {
+            noAck: true
+        });
+
+    });
+});
+
+amqp.connect(CONFIG.RABBITMQ_STOCKS, function(error0, connection) {
   if (error0) {
     throw error0;
   }
@@ -44,27 +70,7 @@ amqp.connect(process.env.HOST_RABBITMQ, function(error0, connection) {
         }, {
             noAck: true
         });
-
-    channel.consume("tweets_sentiment", function(msg) {
-            console.log(" [x] Received tweets %s", msg.content.toString());
-            var response = JSON.parse(msg.content.toString())
-            var clientObj = client_list[response.id_hackadeira];
-            if(!clientObj)
-                return;
-            
-            if(!clientObj.tweets_changed)
-                clientObj.tSendData = []
-            clientObj.tSendData.push(response); 
-            clientObj.tweets_changed = true;
-        }, {
-            noAck: true
-        });
-
     });
-
-   
-
-
 });
 
 
