@@ -6,7 +6,7 @@ var ws = new WebSocket('ws://localhost:8080/application-server')
 
 function App() {
   const  [query, setQuery] = useState('')
-
+  var toCancel = ''
     
     ws.onopen = function(){
       console.log('connected')
@@ -28,6 +28,7 @@ function App() {
 
   function searchTweet(){
     ws.send(JSON.stringify({'type': 'tweet', 'resource': `/${query}`}))
+    toCancel = query
   }
 
   function changeQuery(event){
@@ -36,7 +37,7 @@ function App() {
   }
 
   function cancelQuery() {
-    ws.send(JSON.stringify({'type': 'tweet', 'resource': `/cancel/${query}`}))
+    ws.send(JSON.stringify({'type': 'tweet', 'resource': `/cancel/${toCancel}`}))
   }
 
   return (
@@ -45,7 +46,7 @@ function App() {
       <div>
         <input onChange={changeQuery} placeholder="subject to analysis"></input>
         <button onClick={searchTweet}>Search</button>
-        <button onclick={cancelQuery} >CANCELADO!!</button>
+        <button onClick={cancelQuery}>CANCELADO!!</button>
       </div>
       <div>
         {contentJson.map((tweet,index) => {
