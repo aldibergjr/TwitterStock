@@ -1,4 +1,5 @@
 //variáveis de import e constantes
+const CONFIG = require('./config')
 var yahoo = require('yahoo-financial-data');
 var amqp = require('amqplib/callback_api');
 const express = require('express')
@@ -16,7 +17,7 @@ const STOCKS = ["GILD", "UNP", "UTX", "HPQ", "V", "CSCO", "SLB", "AMGN", "BA", "
 
 
 
-amqp.connect(process.env.HOST_RABBITMQ, function(error0, connection) {
+amqp.connect(CONFIG.RABBITMQ_STOCKS, function(error0, connection) {
   if (error0) {
     throw error0;
   }

@@ -10,7 +10,8 @@ COPY model model
 COPY sentiment.py .
 COPY server.py .
 COPY worker.py .
+COPY config.py .
 
-ENV NUM_WORKERS=8
+ENV NUM_WORKERS=4
 
 CMD ["python", "server.py"]

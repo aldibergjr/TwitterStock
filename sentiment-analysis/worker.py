@@ -4,6 +4,7 @@ import json
 import logging
 import pika
 from sentiment import predict
+from config import RABBITMQ_TWEETS
 
 
 def setup_logger(name: str):
@@ -16,7 +17,7 @@ def setup_logger(name: str):
     return logger
 
 
-_HOST_ = os.environ.get('HOST', '0.0.0.0')
+_HOST_ = RABBITMQ_TWEETS
 
 
 def _deemojify(text):
@@ -61,8 +62,12 @@ def work(name: str):
                 pred = predict(_deemojify(t['tweet']))
                 t['sentiment'] = 1 if pred else 0
 
-            logger.info(
-                f'{tweets["id_hackadeira"]} :: {100*sum([t["sentiment"] for t in tweets["tweets"]])/len(tweets["tweets"]):.2f}%') # noqa
+            if len(tweets['tweets']) > 0:
+                sent_perc = sum([t["sentiment"]
+                                 for t in tweets["tweets"]])/len(tweets["tweets"])
+            else:
+                sent_perc = 0
+            logger.info(f'{tweets["id_hackadeira"][:8]} :: {100*sent_perc:.2f}%')  # noqa
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
             _send_to_queue(tweets)
