@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 
-function service(){
+export function Service(){
 
     // instance of websocket connection as a class property
-    ws = new WebSocket('ws://localhost:3000/ws')
+    var ws = new WebSocket('ws://localhost:8080/application-server')
 
     
     useEffect(() => {
@@ -23,7 +23,7 @@ function service(){
         console.log('disconnected')
         // automatically try to reconnect on connection loss
         }
-        
+
     },[])
 
     function sendReq(){
@@ -33,10 +33,10 @@ function service(){
             resource: "/stock/" + value
         }
         console.log(Req);
-        connection.send(JSON.stringify(Req));
+        ws.send(JSON.stringify(Req));
     
     }
 
-    return(<ChildComponent websocket={this.ws} />)
+    return(<div> {ws} </div>)
         
 }
